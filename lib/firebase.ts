@@ -32,6 +32,19 @@ export function getFirebaseServices() {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
   };
 
+  const requiredConfig = [
+    firebaseConfig.apiKey,
+    firebaseConfig.authDomain,
+    firebaseConfig.projectId,
+    firebaseConfig.storageBucket,
+    firebaseConfig.messagingSenderId,
+    firebaseConfig.appId,
+  ];
+
+  if (requiredConfig.some((value) => !value)) {
+    throw new Error("Faltan variables NEXT_PUBLIC_FIREBASE_* en la configuracion del entorno.");
+  }
+
   const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
   if (!appCheckStarted && process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY) {

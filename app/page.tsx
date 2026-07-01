@@ -90,31 +90,40 @@ export default function Home() {
   const hasPendingAppointment = myAppointments.some((appointment) => appointment.estado === "pendiente");
 
   useEffect(() => {
-    const { auth } = getFirebaseServices();
-    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-      setUser(authUser);
-      setOccupiedTimes(new Set());
+    try {
+      const { auth } = getFirebaseServices();
+      const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+        setUser(authUser);
+        setOccupiedTimes(new Set());
 
-      if (!authUser) {
-        setIsAdmin(false);
-        setAuthStatus("No iniciaste sesion.");
-        setMyAppointments([]);
-        setAdminAppointments([]);
-        setAvailabilityStatus("Inicia sesion y elegi una fecha para ver horarios.");
-        return;
-      }
+        if (!authUser) {
+          setIsAdmin(false);
+          setAuthStatus("No iniciaste sesion.");
+          setMyAppointments([]);
+          setAdminAppointments([]);
+          setAvailabilityStatus("Inicia sesion y elegi una fecha para ver horarios.");
+          return;
+        }
 
-      setAuthStatus(`Sesion iniciada como ${authUser.email}`);
-      const adminAccess = await checkAdmin(authUser.uid);
-      setIsAdmin(adminAccess);
-      await loadMyAppointments(authUser.uid);
+        setAuthStatus(`Sesion iniciada como ${authUser.email}`);
+        const adminAccess = await checkAdmin(authUser.uid);
+        setIsAdmin(adminAccess);
+        await loadMyAppointments(authUser.uid);
 
-      if (adminAccess) {
-        await loadAdminAppointments();
-      }
-    });
+        if (adminAccess) {
+          await loadAdminAppointments();
+        }
+      });
 
-    return unsubscribe;
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error de configuracion Firebase:", error);
+      setAuthStatus("Falta configurar Firebase en Vercel.");
+      setStatusMessage({
+        text: "La pagina esta publicada, pero faltan variables de entorno de Firebase en Vercel.",
+        type: "error",
+      });
+    }
   }, []);
 
   useEffect(() => {
